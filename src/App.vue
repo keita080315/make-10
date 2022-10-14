@@ -1,6 +1,10 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from "vue-router";
 import HelloWorld from "./components/HelloWorld.vue";
+import firebase from "firebase/compat";
+import app = firebase.app;
+
+console.log(app)
 </script>
 
 <template>
@@ -8,6 +12,10 @@ import HelloWorld from "./components/HelloWorld.vue";
 </template>
 
 <style scoped>
+* {
+  background-color: white;
+}
+
 header {
   line-height: 1.5;
   max-height: 100vh;
