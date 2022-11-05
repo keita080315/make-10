@@ -1,5 +1,7 @@
 <template>
-
+  <v-app>
+    <p>gaming</p>
+  </v-app>
 </template>
 
 <script>
