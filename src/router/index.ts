@@ -3,6 +3,7 @@ import HomeView from "../views/HomeView.vue";
 import SignIn from '../views/SignIn.vue';
 import Game from "../views/Game.vue";
 import Result from "../views/Result.vue";
+import WaitMatch from "../views/WaitMatch.vue";
 import {getAuth, onAuthStateChanged} from "firebase/auth";
 
 const router = createRouter({
@@ -38,6 +39,12 @@ const router = createRouter({
       path: "/result",
       name: "result",
       component: Result,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/wait",
+      name: "waitMatch",
+      component: WaitMatch,
       meta: { requiresAuth: true },
     },
   ],
