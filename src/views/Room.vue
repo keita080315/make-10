@@ -1,10 +1,12 @@
 <template>
-
+  <v-app>
+    <p>gaming</p>
+  </v-app>
 </template>
 
 <script>
 export default {
-  name: "Game"
+  name: "Room"
 }
 </script>
 

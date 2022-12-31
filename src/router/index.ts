@@ -1,8 +1,9 @@
 import { createRouter, createWebHistory } from "vue-router";
 import HomeView from "../views/HomeView.vue";
 import SignIn from '../views/SignIn.vue';
-import Game from "../views/Game.vue";
+import Room from "../views/Room.vue";
 import Result from "../views/Result.vue";
+import WaitMatch from "../views/WaitMatch.vue";
 import {getAuth, onAuthStateChanged} from "firebase/auth";
 
 const router = createRouter({
@@ -29,15 +30,21 @@ const router = createRouter({
       component: SignIn,
     },
     {
-      path: "/game",
-      name: "game",
-      component: Game,
+      path: "/room/:roomId",
+      name: "room",
+      component: Room,
       meta: { requiresAuth: true },
     },
     {
       path: "/result",
       name: "result",
       component: Result,
+      meta: { requiresAuth: true },
+    },
+    {
+      path: "/wait/:docId",
+      name: "waitMatch",
+      component: WaitMatch,
       meta: { requiresAuth: true },
     },
   ],

@@ -28,10 +28,7 @@ export default {
       onAuthStateChanged(auth, (user) => {
         if (user) {
           const uid = user.uid;
-          console.log(user)
-        } else {
-          // User is signed out
-          // ...
+          this.$router.push({ path: '/' });
         }
       });
     }
