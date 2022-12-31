@@ -2,6 +2,9 @@
   <div>
     <button @click="onMatching">対戦を始める</button>
   </div>
+  <div>
+    <button @click="logout">ログアウトする</button>
+  </div>
 </template>
 
 <script>
@@ -20,11 +23,15 @@ export default {
           status: 'waiting',
           created: date.toLocaleString(),
         });
-        console.log("Document written with ID: ", docRef.id);
-        this.$router.push('/wait');
+        this.$router.push('/wait/' + docRef.id);
       } catch (e) {
         console.error("Error adding document: ", e);
       }
+    },
+    logout() {
+      getAuth().signOut().then(() => {
+        this.$router.push({ path: '/signIn' });
+      });
     },
   }
 }
