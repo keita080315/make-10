@@ -1,6 +1,17 @@
 <template>
-  <v-app>
-    <p>対戦相手を探しています、、、</p>
+  <v-app class="bg-indigo-lighten-2">
+    <div class="status-message-wrap">
+      <div class="status-message-content">
+        <v-progress-circular
+            class="mb-10"
+            :size="50"
+            indeterminate
+            color="cyan-lighten-5"
+        ></v-progress-circular>
+        <p class="d-flex justify-space-around align-center flex-column flex-sm-row fill-height font-weight-bold">{{statusMessage}}</p>
+
+      </div>
+    </div>
   </v-app>
 </template>
 
@@ -27,6 +38,7 @@ export default {
   data() {
     return {
       roomId: '',
+      statusMessage: '対戦相手を探しています'
     }
   },
   mounted() {
@@ -66,11 +78,9 @@ export default {
             });
             let roomIdColumn = 'roomId';
             let status = 'status';
-            transaction.update(doc(db, "users", this.$route.params.docId), {
-              [roomIdColumn]: roomId,
-              [status]: 'matched'
-            });
+            transaction.update(doc(db, "users", this.$route.params.docId), {[roomIdColumn]: roomId, [status]: 'matched'});
             transaction.update(doc(db, "users", randomUser.id), {[roomIdColumn]: roomId, [status]: 'matched'});
+            this.statusMessage = '対戦相手が見つかりました' + "\n" + '処理中です'
             console.log("matched!");
           } else {
             console.log('Not found!');
@@ -91,6 +101,7 @@ export default {
       });
     },
     async backSearch() {
+      this.statusMessage = '再度対戦相手を探しています'
       await updateDoc(doc(db, "users", this.$route.params.docId), {
         status: 'waiting'
       });
@@ -105,5 +116,16 @@ export default {
 </script>
 
 <style scoped>
-
+.status-message-wrap{
+  height:100vh;
+  text-align:center;
+  position:relative;
+}
+.status-message-content{
+  position:absolute;
+  top:50%;
+  left:50%;
+  transform:translate(-50%,-50%);
+  width:100%;
+}
 </style>
