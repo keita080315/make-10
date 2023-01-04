@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { RouterLink, RouterView } from "vue-router";
-import HelloWorld from "./components/HelloWorld.vue";
 import firebase from "firebase/compat";
 import app = firebase.app;
 
@@ -13,7 +12,8 @@ console.log(app)
 
 <style scoped>
 * {
-  background-color: white;
+  width: 100%;
+  margin: 0;
 }
 
 header {
