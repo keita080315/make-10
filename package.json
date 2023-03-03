@@ -13,7 +13,9 @@
     "eslint": "^8.26.0",
     "eslint-plugin-vue": "^9.6.0",
     "firebase": "^9.12.1",
+    "fs": "^0.0.1-security",
     "pinia": "^2.0.21",
+    "vite-plugin-fonts": "^0.7.0",
     "vue": "^3.2.38",
     "vue-router": "^4.1.5",
     "vuetify": "^3.0.6"
