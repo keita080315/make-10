@@ -21,8 +21,7 @@
         </v-col>
         <v-col cols="6" class="px-0 text-center">
           <p class="font-weight-bold text-h5">第 <span class="font-weight-bold text-h4">{{ this.questionNumber }}</span>
-            問
-          </p>
+            問</p>
           <v-row class="mx-auto">
             <v-col cols="4" class="px-0">
               <div>
@@ -57,9 +56,14 @@
       </v-row>
 
       <div class="circle-out mt-12">
-        <div class="circle-inner align-center" @click="setQuestion">
+        <div class="circle-inner align-center" @click="answer">
         </div>
       </div>
+
+      <answer-modal
+          :cards="cards"
+          v-show="isAnswerModal"
+      ></answer-modal>
 
       <div class="answer-content">
         <div class="number-content">
@@ -93,16 +97,21 @@ import {doc, getDoc, updateDoc} from "firebase/firestore";
 import db from "../../firebase/firebase";
 import {getAuth} from "firebase/auth";
 import questionArr from "../assets/arr";
+import AnswerModal from "../components/AnswerModal.vue";
 
 export default {
   name: "Room",
+  components: {
+    AnswerModal
+  },
   data() {
     return {
       questionArr: questionArr,
       myScore: 0,
       oppScore: 0,
-      cards: [0, 0, 0, 0],
+      cards: [1, 3, 4, 0],
       questionNumber: 1,
+      isAnswerModal: false,
     }
   },
   async mounted() {
@@ -118,6 +127,10 @@ export default {
         });
       }
     },
+    answer() {
+      this.isAnswerModal = true;
+    },
+    // 先
     async setQuestion() {
       this.cards = [];
       this.cards = this.questionArr[Math.floor(Math.random() * 5223) - 1];
@@ -126,11 +139,14 @@ export default {
       progressElem.classList.add("move");
       await this.nextQuestion();
       this.questionNumber++;
-      setTimeout(this.setQuestion,0)
+      setTimeout(this.setQuestion, 0);
     },
     async nextQuestion() {
       return new Promise((resolve, reject) => {
         document.getElementById('progress').addEventListener('animationend', () => {
+          if (this.questionNumber === 5) {
+            console.log('end');
+          }
           document.getElementById('progress').classList.remove("move");
           resolve();
         });
@@ -151,6 +167,8 @@ export default {
 .w-96 {
   width: 95%;
   margin: 35px auto;
+  z-index: 5;
+  position: relative;
 }
 
 .bg-clr-sky {
