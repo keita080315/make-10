@@ -13,6 +13,10 @@
         ></v-progress-linear>
       </div>
 
+      <div class="start-count" id="start-count">
+        <p>{{ startCount }}</p>
+      </div>
+
       <v-row class="mx-auto mt-14" justify="center">
         <v-col cols="3" class="px-0">
           <div class="circle-profile mx-auto">
@@ -61,8 +65,10 @@
       </div>
 
       <answer-modal
-          :cards="cards"
+          :fakeCards="fakeCards"
           v-show="isAnswerModal"
+          @is-answer-modal='isAnswerModal = $event'
+          @scored="scored"
       ></answer-modal>
 
       <div class="answer-content">
@@ -109,14 +115,31 @@ export default {
       questionArr: questionArr,
       myScore: 0,
       oppScore: 0,
-      cards: [1, 3, 4, 0],
+      cards: [1, 3, 4, 2],
+      fakeCards: [1, 3, 4, 2],
       questionNumber: 1,
       isAnswerModal: false,
+      startCount: '',
     }
   },
   async mounted() {
+    this.count();
   },
   methods: {
+    count() {
+      const countList = [3, 2, 1, 'Start!'];
+      let i = 0;
+      const interval = setInterval(function () {
+        if (i === 4) {
+          clearInterval(interval);
+          document.getElementById("start-count").style.display = "none";
+          this.setQuestion();
+        }
+        this.startCount = countList[i];
+        i++;
+      }.bind(this), 1000, countList, i, this.startCount);
+
+    },
     async scored() {
       const docSnap = await getDoc(doc(db, "rooms", this.$route.params.roomId));
       let uid = getAuth().currentUser.uid;
@@ -129,6 +152,7 @@ export default {
     },
     answer() {
       this.isAnswerModal = true;
+      document.getElementById('progress').style.animationPlayState = "paused";
     },
     // 先
     async setQuestion() {
@@ -297,5 +321,19 @@ export default {
   100% {
     width: 0;
   }
+}
+
+.start-count {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 11;
+  transform: translate(-50%, -50%);
+}
+
+.start-count p {
+  font-size: 80px;
+  font-weight: bold;
+  text-align: center;
 }
 </style>
