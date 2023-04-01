@@ -1,19 +1,21 @@
 <template>
   <v-app class="bg-clr-sky">
     <div class="w-96">
-      <v-progress-linear
-          model-value="100"
-          :height="16"
-          color="#DF6464"
-          rounded
+      <div
+          style="background-color: #DF6464;height: 16px;border-radius: 10px"
       >
         <v-progress-linear
             model-value="100"
             :height="16"
             color="#FFF9D7"
-            rounded
+            style="border-radius: 10px"
+            id="progress"
         ></v-progress-linear>
-      </v-progress-linear>
+      </div>
+
+      <div class="start-count" id="start-count">
+        <p>{{ startCount }}</p>
+      </div>
 
       <v-row class="mx-auto mt-14" justify="center">
         <v-col cols="3" class="px-0">
@@ -22,11 +24,12 @@
           </div>
         </v-col>
         <v-col cols="6" class="px-0 text-center">
-          <p class="font-weight-bold text-h5">第<span class="font-weight-bold text-h4">1</span>問</p>
+          <p class="font-weight-bold text-h5">第 <span class="font-weight-bold text-h4">{{ this.questionNumber }}</span>
+            問</p>
           <v-row class="mx-auto">
             <v-col cols="4" class="px-0">
               <div>
-                <p class="font-weight-bold text-size-50 border-white">{{ this.score }}</p>
+                <p class="font-weight-bold text-size-50 border-white">{{ this.myScore }}</p>
               </div>
             </v-col>
             <v-col cols="4" class="px-0">
@@ -36,7 +39,7 @@
             </v-col>
             <v-col cols="4" class="px-0">
               <div>
-                <p class="font-weight-bold text-size-50 border-white">3</p>
+                <p class="font-weight-bold text-size-50 border-white">{{ this.oppScore }}</p>
               </div>
             </v-col>
           </v-row>
@@ -57,9 +60,16 @@
       </v-row>
 
       <div class="circle-out mt-12">
-        <div class="circle-inner align-center" @click="scored">
+        <div class="circle-inner align-center" @click="answer">
         </div>
       </div>
+
+      <answer-modal
+          :fakeCards="fakeCards"
+          v-show="isAnswerModal"
+          @is-answer-modal='isAnswerModal = $event'
+          @scored="scored"
+      ></answer-modal>
 
       <div class="answer-content">
         <div class="number-content">
@@ -93,36 +103,78 @@ import {doc, getDoc, updateDoc} from "firebase/firestore";
 import db from "../../firebase/firebase";
 import {getAuth} from "firebase/auth";
 import questionArr from "../assets/arr";
+import AnswerModal from "../components/AnswerModal.vue";
 
 export default {
   name: "Room",
+  components: {
+    AnswerModal
+  },
   data() {
     return {
       questionArr: questionArr,
-      score: 0,
-      cards: [1, 2, 3, 4],
+      myScore: 0,
+      oppScore: 0,
+      cards: [1, 3, 4, 2],
+      fakeCards: [1, 3, 4, 2],
+      questionNumber: 1,
+      isAnswerModal: false,
+      startCount: '',
     }
   },
   async mounted() {
-    console.log(this.questionArr[1]);
+    this.count();
   },
   methods: {
+    count() {
+      const countList = [3, 2, 1, 'Start!'];
+      let i = 0;
+      const interval = setInterval(function () {
+        if (i === 4) {
+          clearInterval(interval);
+          document.getElementById("start-count").style.display = "none";
+          this.setQuestion();
+        }
+        this.startCount = countList[i];
+        i++;
+      }.bind(this), 1000, countList, i, this.startCount);
+
+    },
     async scored() {
       const docSnap = await getDoc(doc(db, "rooms", this.$route.params.roomId));
       let uid = getAuth().currentUser.uid;
-      this.score += 10;
+      this.myScore += 1;
       if (docSnap.data().participants[0] === uid) {
         await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
-          "score.user1": this.score
-        });
-      } else {
-        await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
-          "score.user2": this.score
+          "score.user1": this.myScore
         });
       }
     },
+    answer() {
+      this.isAnswerModal = true;
+      document.getElementById('progress').style.animationPlayState = "paused";
+    },
+    // 先
     async setQuestion() {
-      console.log(this.questionArr[Math.floor(Math.random() * 5223) - 1]);
+      this.cards = [];
+      this.cards = this.questionArr[Math.floor(Math.random() * 5223) - 1];
+      // プログレスバーの進捗再設定
+      let progressElem = document.getElementById('progress');
+      progressElem.classList.add("move");
+      await this.nextQuestion();
+      this.questionNumber++;
+      setTimeout(this.setQuestion, 0);
+    },
+    async nextQuestion() {
+      return new Promise((resolve, reject) => {
+        document.getElementById('progress').addEventListener('animationend', () => {
+          if (this.questionNumber === 5) {
+            console.log('end');
+          }
+          document.getElementById('progress').classList.remove("move");
+          resolve();
+        });
+      });
     }
   }
 }
@@ -139,6 +191,8 @@ export default {
 .w-96 {
   width: 95%;
   margin: 35px auto;
+  z-index: 5;
+  position: relative;
 }
 
 .bg-clr-sky {
@@ -209,14 +263,15 @@ export default {
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 }
 
-.card-content{
+.card-content {
   font-size: 50px;
   color: #347CA4;
   font-weight: bold;
   text-align: center;
   max-width: fit-content;
 }
-.answer-content{
+
+.answer-content {
   display: flex;
   flex-wrap: wrap;
   flex-direction: row;
@@ -224,11 +279,11 @@ export default {
   margin-top: 45px;
 }
 
-.answer-content p{
+.answer-content p {
   font-weight: bold;
 }
 
-.number-content{
+.number-content {
   width: 50px;
   height: 67px;
   background-color: white;
@@ -241,7 +296,7 @@ export default {
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
 }
 
-.method-content{
+.method-content {
   width: 34px;
   height: 34px;
   background-color: white;
@@ -253,5 +308,32 @@ export default {
   margin: 16px 3px;
   align-items: center;
   box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+}
+
+.move {
+  animation: move 10s;
+}
+
+@keyframes move {
+  0% {
+    width: 100%;
+  }
+  100% {
+    width: 0;
+  }
+}
+
+.start-count {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: 11;
+  transform: translate(-50%, -50%);
+}
+
+.start-count p {
+  font-size: 80px;
+  font-weight: bold;
+  text-align: center;
 }
 </style>
