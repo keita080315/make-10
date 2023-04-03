@@ -157,7 +157,8 @@ export default {
     // 先
     async setQuestion() {
       this.cards = [];
-      this.cards = this.questionArr[Math.floor(Math.random() * 5223) - 1];
+      this.cards = questionArr[Math.floor(Math.random() * 5223) - 1];
+      this.fakeCards = this.cards.concat();
       // プログレスバーの進捗再設定
       let progressElem = document.getElementById('progress');
       progressElem.classList.add("move");
