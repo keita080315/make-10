@@ -138,9 +138,9 @@ export default {
         this.startCount = countList[i];
         i++;
       }.bind(this), 1000, countList, i, this.startCount);
-
     },
     async scored() {
+      // ここでプログレスバーの表示を0にしたい
       const docSnap = await getDoc(doc(db, "rooms", this.$route.params.roomId));
       let uid = getAuth().currentUser.uid;
       this.myScore += 1;

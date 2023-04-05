@@ -9,7 +9,7 @@
         <p class="font-weight-bold text-h3">= {{ this.resultCal }}</p>
       </div>
       <div class="text-center pt-8" v-if="!isFinishedAnswer">
-        <p class="font-weight-bold text-h3">= 10</p>
+        <p class="font-weight-bold text-h3">= ?</p>
       </div>
       <div class="correct-mark" id="correct-mark">
       </div>
@@ -55,7 +55,7 @@ export default {
     return {
       mathCards: ['+', '−', '×', '÷'],
       answer: '',
-      resultCal: 10,
+      resultCal: 0,
       method: '',
       isFinishedAnswer: false,
     }
@@ -87,7 +87,10 @@ export default {
       }
     },
     returnFalse() {
+      Object.assign(this.$data, this.$options.data());
       this.$emit("is-answer-modal", false);
+      document.getElementById('correct-mark').style.display = "none";
+      document.getElementById('error-mark').style.display = "none";
     },
     calculation(method, makeNum, nextNum) {
       switch (method) {
