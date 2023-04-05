@@ -141,6 +141,7 @@ export default {
     },
     async scored() {
       // ここでプログレスバーの表示を0にしたい
+      document.getElementById('progress').classList.remove("move");
       const docSnap = await getDoc(doc(db, "rooms", this.$route.params.roomId));
       let uid = getAuth().currentUser.uid;
       this.myScore += 1;
@@ -149,6 +150,7 @@ export default {
           "score.user1": this.myScore
         });
       }
+      document.getElementById('progress').classList.add("move");
     },
     answer() {
       this.isAnswerModal = true;
