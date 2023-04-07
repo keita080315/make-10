@@ -66,6 +66,7 @@
 
       <answer-modal
           :fakeCards="fakeCards"
+          :isAnswerModal="isAnswerModal"
           v-show="isAnswerModal"
           @is-answer-modal='isAnswerModal = $event'
           @scored="scored"
@@ -150,7 +151,10 @@ export default {
           "score.user1": this.myScore
         });
       }
-      document.getElementById('progress').classList.add("move");
+      setTimeout(this.skipQuestion,500);
+      setTimeout(function (){
+        document.getElementById('progress').classList.add("move");
+      },500);
     },
     answer() {
       this.isAnswerModal = true;
@@ -178,6 +182,12 @@ export default {
           resolve();
         });
       });
+    },
+    skipQuestion() {
+      this.cards = [];
+      this.cards = questionArr[Math.floor(Math.random() * 5223) - 1];
+      this.fakeCards = this.cards.concat();
+      this.questionNumber++;
     }
   }
 }

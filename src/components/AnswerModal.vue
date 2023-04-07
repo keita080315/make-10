@@ -11,6 +11,17 @@
       <div class="text-center pt-8" v-if="!isFinishedAnswer">
         <p class="font-weight-bold text-h3">= ?</p>
       </div>
+      <div style="text-align: right;padding: 20px 10px;"  v-if="!isFinishedAnswer">
+        <v-progress-circular
+            :rotate="360"
+            :size="50"
+            :width="6"
+            :model-value="cardCount*20"
+            color="#39679D"
+        >
+          {{ cardCount }}
+        </v-progress-circular>
+      </div>
       <div class="correct-mark" id="correct-mark">
       </div>
       <div class="error-mark" id="error-mark">
@@ -58,6 +69,7 @@ export default {
       resultCal: 0,
       method: '',
       isFinishedAnswer: false,
+      cardCount: 5,
     }
   },
   mounted() {
@@ -121,6 +133,27 @@ export default {
       document.getElementById("progress").style.animationPlayState = "running";
     },
   },
+  watch:{
+    fakeCards() {
+      document.getElementById("card-row").style.display = "flex";
+    },
+    isAnswerModal() {
+      if (this.isAnswerModal === true){
+        const interval = setInterval(() => {
+          if (this.cardCount === 0) {
+            clearInterval(interval);
+            if (!(this.fakeCards.length === 0 && this.resultCal === 10)){
+              this.resultCal = 0;
+              this.judgeAnswer();
+            }
+            this.cardCount = 5;
+          } else {
+            this.cardCount--;
+          }
+        }, 1000);
+      }
+    }
+  }
 }
 </script>
 
