@@ -116,8 +116,8 @@ export default {
       questionArr: questionArr,
       myScore: 0,
       oppScore: 0,
-      cards: [1, 3, 4, 2],
-      fakeCards: [1, 3, 4, 2],
+      cards: [0, 0, 0, 0],
+      fakeCards: [0, 0, 0, 0],
       questionNumber: 1,
       isAnswerModal: false,
       startCount: '',
@@ -140,21 +140,22 @@ export default {
         i++;
       }.bind(this), 1000, countList, i, this.startCount);
     },
-    async scored() {
-      // ここでプログレスバーの表示を0にしたい
+    async scored(score) {
+      // ここでプログレスバーの表示を0にした
       document.getElementById('progress').classList.remove("move");
       const docSnap = await getDoc(doc(db, "rooms", this.$route.params.roomId));
       let uid = getAuth().currentUser.uid;
-      this.myScore += 1;
+      console.log(this.myScore + score)
+      this.myScore += this.myScore + score >= 0 ? score : 0;
       if (docSnap.data().participants[0] === uid) {
         await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
           "score.user1": this.myScore
         });
       }
-      setTimeout(this.skipQuestion,500);
-      setTimeout(function (){
+      setTimeout(this.skipQuestion, 500);
+      setTimeout(function () {
         document.getElementById('progress').classList.add("move");
-      },500);
+      }, 500);
     },
     answer() {
       this.isAnswerModal = true;

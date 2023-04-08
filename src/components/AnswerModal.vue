@@ -124,9 +124,10 @@ export default {
     judgeAnswer() {
       if (this.resultCal === 10){
         document.getElementById('correct-mark').style.display = "block";
-        this.$emit("scored");
+        this.$emit("scored",1);
       } else {
         document.getElementById('error-mark').style.display = "block";
+        this.$emit("scored",-1);
       }
       document.getElementById("math-row").style.display = "none";
       setTimeout(this.returnFalse,1000);
@@ -140,9 +141,12 @@ export default {
     isAnswerModal() {
       if (this.isAnswerModal === true){
         const interval = setInterval(() => {
-          if (this.cardCount === 0) {
+          if (this.isFinishedAnswer === true){
             clearInterval(interval);
-            if (!(this.fakeCards.length === 0 && this.resultCal === 10)){
+          }
+          else if (this.cardCount === 0) {
+            clearInterval(interval);
+            if (!(this.fakeCards.length === 0)){
               this.resultCal = 0;
               this.judgeAnswer();
             }
