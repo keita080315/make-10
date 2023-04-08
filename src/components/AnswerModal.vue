@@ -9,7 +9,18 @@
         <p class="font-weight-bold text-h3">= {{ this.resultCal }}</p>
       </div>
       <div class="text-center pt-8" v-if="!isFinishedAnswer">
-        <p class="font-weight-bold text-h3">= 10</p>
+        <p class="font-weight-bold text-h3">= ?</p>
+      </div>
+      <div style="text-align: right;padding: 20px 10px;"  v-if="!isFinishedAnswer">
+        <v-progress-circular
+            :rotate="360"
+            :size="50"
+            :width="6"
+            :model-value="cardCount*20"
+            color="#39679D"
+        >
+          {{ cardCount }}
+        </v-progress-circular>
       </div>
       <div class="correct-mark" id="correct-mark">
       </div>
@@ -55,9 +66,10 @@ export default {
     return {
       mathCards: ['+', '−', '×', '÷'],
       answer: '',
-      resultCal: 10,
+      resultCal: 0,
       method: '',
       isFinishedAnswer: false,
+      cardCount: 5,
     }
   },
   mounted() {
@@ -87,7 +99,10 @@ export default {
       }
     },
     returnFalse() {
+      Object.assign(this.$data, this.$options.data());
       this.$emit("is-answer-modal", false);
+      document.getElementById('correct-mark').style.display = "none";
+      document.getElementById('error-mark').style.display = "none";
     },
     calculation(method, makeNum, nextNum) {
       switch (method) {
@@ -109,15 +124,40 @@ export default {
     judgeAnswer() {
       if (this.resultCal === 10){
         document.getElementById('correct-mark').style.display = "block";
-        this.$emit("scored");
+        this.$emit("scored",1);
       } else {
         document.getElementById('error-mark').style.display = "block";
+        this.$emit("scored",-1);
       }
       document.getElementById("math-row").style.display = "none";
       setTimeout(this.returnFalse,1000);
       document.getElementById("progress").style.animationPlayState = "running";
     },
   },
+  watch:{
+    fakeCards() {
+      document.getElementById("card-row").style.display = "flex";
+    },
+    isAnswerModal() {
+      if (this.isAnswerModal === true){
+        const interval = setInterval(() => {
+          if (this.isFinishedAnswer === true){
+            clearInterval(interval);
+          }
+          else if (this.cardCount === 0) {
+            clearInterval(interval);
+            if (!(this.fakeCards.length === 0)){
+              this.resultCal = 0;
+              this.judgeAnswer();
+            }
+            this.cardCount = 5;
+          } else {
+            this.cardCount--;
+          }
+        }, 1000);
+      }
+    }
+  }
 }
 </script>
 

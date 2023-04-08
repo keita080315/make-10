@@ -59,13 +59,14 @@
         </div>
       </v-row>
 
-      <div class="circle-out mt-12">
+      <div class="circle-out mt-12" id="answer-button">
         <div class="circle-inner align-center" @click="answer">
         </div>
       </div>
 
       <answer-modal
           :fakeCards="fakeCards"
+          :isAnswerModal="isAnswerModal"
           v-show="isAnswerModal"
           @is-answer-modal='isAnswerModal = $event'
           @scored="scored"
@@ -115,8 +116,8 @@ export default {
       questionArr: questionArr,
       myScore: 0,
       oppScore: 0,
-      cards: [1, 3, 4, 2],
-      fakeCards: [1, 3, 4, 2],
+      cards: [0, 0, 0, 0],
+      fakeCards: [0, 0, 0, 0],
       questionNumber: 1,
       isAnswerModal: false,
       startCount: '',
@@ -138,26 +139,38 @@ export default {
         this.startCount = countList[i];
         i++;
       }.bind(this), 1000, countList, i, this.startCount);
-
     },
-    async scored() {
+    async scored(score) {
+      // ここでプログレスバーの表示を0にした
+      document.getElementById('progress').classList.remove("move");
       const docSnap = await getDoc(doc(db, "rooms", this.$route.params.roomId));
       let uid = getAuth().currentUser.uid;
-      this.myScore += 1;
+      if (this.myScore + score === 2){
+        console.log('You Win!');
+        this.$router.push('/result');
+      }
+      this.myScore += this.myScore + score >= 0 ? score : 0;
       if (docSnap.data().participants[0] === uid) {
         await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
           "score.user1": this.myScore
         });
       }
+      setTimeout(this.skipQuestion, 500);
+      setTimeout(function () {
+        document.getElementById('progress').classList.add("move");
+      }, 500);
     },
     answer() {
       this.isAnswerModal = true;
       document.getElementById('progress').style.animationPlayState = "paused";
+      document.getElementById('answer-button').style.pointerEvents = "none";
     },
     // 先
     async setQuestion() {
       this.cards = [];
-      this.cards = this.questionArr[Math.floor(Math.random() * 5223) - 1];
+      this.cards = questionArr[Math.floor(Math.random() * 5223) - 1];
+      this.fakeCards = this.cards.concat();
+      document.getElementById('answer-button').style.pointerEvents = "auto";
       // プログレスバーの進捗再設定
       let progressElem = document.getElementById('progress');
       progressElem.classList.add("move");
@@ -175,6 +188,13 @@ export default {
           resolve();
         });
       });
+    },
+    skipQuestion() {
+      this.cards = [];
+      this.cards = questionArr[Math.floor(Math.random() * 5223) - 1];
+      this.fakeCards = this.cards.concat();
+      document.getElementById('answer-button').style.pointerEvents = "auto";
+      this.questionNumber++;
     }
   }
 }
