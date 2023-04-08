@@ -145,7 +145,10 @@ export default {
       document.getElementById('progress').classList.remove("move");
       const docSnap = await getDoc(doc(db, "rooms", this.$route.params.roomId));
       let uid = getAuth().currentUser.uid;
-      console.log(this.myScore + score)
+      if (this.myScore + score === 2){
+        console.log('You Win!');
+        this.$router.push('/result');
+      }
       this.myScore += this.myScore + score >= 0 ? score : 0;
       if (docSnap.data().participants[0] === uid) {
         await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
