@@ -59,7 +59,7 @@
         </div>
       </v-row>
 
-      <div class="circle-out mt-12">
+      <div class="circle-out mt-12" id="answer-button">
         <div class="circle-inner align-center" @click="answer">
         </div>
       </div>
@@ -159,12 +159,14 @@ export default {
     answer() {
       this.isAnswerModal = true;
       document.getElementById('progress').style.animationPlayState = "paused";
+      document.getElementById('answer-button').style.pointerEvents = "none";
     },
     // 先
     async setQuestion() {
       this.cards = [];
       this.cards = questionArr[Math.floor(Math.random() * 5223) - 1];
       this.fakeCards = this.cards.concat();
+      document.getElementById('answer-button').style.pointerEvents = "auto";
       // プログレスバーの進捗再設定
       let progressElem = document.getElementById('progress');
       progressElem.classList.add("move");
@@ -187,6 +189,7 @@ export default {
       this.cards = [];
       this.cards = questionArr[Math.floor(Math.random() * 5223) - 1];
       this.fakeCards = this.cards.concat();
+      document.getElementById('answer-button').style.pointerEvents = "auto";
       this.questionNumber++;
     }
   }
