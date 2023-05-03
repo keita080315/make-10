@@ -136,7 +136,9 @@ export default {
         this.oppScore = doc.data().score[oppUser];
       }
       if (doc.data().isAnswerModal!==this.isAnswerModal){
-
+        this.isAnswerModal = Boolean(doc.data().isAnswerModal);
+        document.getElementById('progress').style.animationPlayState =
+            this.isAnswerModal === true ?  "paused" : "running";
       }
     });
   },
@@ -155,29 +157,38 @@ export default {
       }.bind(this), 1000, countList, i, this.startCount);
     },
     async scored(score) {
-      // ここでプログレスバーの表示を0にした
-      document.getElementById('progress').classList.remove("move");
-      if (this.myScore + score === 2){
+      if (this.myScore + score === 5){
         console.log('You Win!');
         this.$router.push('/result');
       }
       this.myScore += this.myScore + score >= 0 ? score : 0;
-      let user = "score" + "." + this.userNum;
-      await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
-        [user]: this.myScore
-      });
-      setTimeout(this.skipQuestion, 500);
-      setTimeout(function () {
-        document.getElementById('progress').classList.add("move");
-      }, 500);
+      let scoreUser = "score" + "." + this.userNum;
+      if (score === 1){
+        // ここでプログレスバーの表示を0にした
+        document.getElementById('progress').classList.remove("move");
+        await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
+          [scoreUser]: this.myScore,
+          "isAnswerModal": false,
+          "questionNumber.user1": this.questionNumber + 1,
+          "questionNumber.user2": this.questionNumber + 1,
+        });
+        setTimeout(this.skipQuestion, 500);
+        setTimeout(function () {
+          document.getElementById('progress').classList.add("move");
+        }, 500);
+      }
+      if(score === -1){
+        await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
+          [scoreUser]: this.myScore,
+          "isAnswerModal": false,
+        });
+        document.getElementById('answer-button').style.pointerEvents = "none";
+      }
     },
     answer() {
-      // updateDoc(doc(db, "rooms", this.$route.params.roomId), {
-      //   "isAnswerModal": true
-      // });
-      this.isAnswerModal = true;
-      document.getElementById('progress').style.animationPlayState = "paused";
-      document.getElementById('answer-button').style.pointerEvents = "none";
+      updateDoc(doc(db, "rooms", this.$route.params.roomId), {
+        "isAnswerModal": true
+      });
     },
     // 先
     async setQuestion() {

@@ -100,7 +100,6 @@ export default {
     },
     returnFalse() {
       Object.assign(this.$data, this.$options.data());
-      this.$emit("is-answer-modal", false);
       document.getElementById('correct-mark').style.display = "none";
       document.getElementById('error-mark').style.display = "none";
     },
@@ -124,14 +123,17 @@ export default {
     judgeAnswer() {
       if (this.resultCal === 10){
         document.getElementById('correct-mark').style.display = "block";
-        this.$emit("scored",1);
+        setTimeout(() => {
+          this.$emit("scored",1)
+        },1000);
       } else {
         document.getElementById('error-mark').style.display = "block";
-        this.$emit("scored",-1);
+        setTimeout(() => {
+          this.$emit("scored",-1)
+        },1000);
       }
       document.getElementById("math-row").style.display = "none";
       setTimeout(this.returnFalse,1000);
-      document.getElementById("progress").style.animationPlayState = "running";
     },
   },
   watch:{
