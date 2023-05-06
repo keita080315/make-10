@@ -9,6 +9,9 @@
     "type-check": "vue-tsc --noEmit",
     "lint": "eslint . --ext .vue,.js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts --fix --ignore-path .gitignore"
   },
+  "engines": {
+    "node": ">=16.x"
+  },
   "dependencies": {
     "eslint": "^8.26.0",
     "eslint-plugin-vue": "^9.6.0",
