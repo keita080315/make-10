@@ -1,5 +1,8 @@
 # make-10-app
 
+## こちらのURLからプレイできます！（まだ作成中）
+## https://make-10.onrender.com
+
 This template should help get you started developing with Vue 3 in Vite.
 
 ## Recommended IDE Setup
