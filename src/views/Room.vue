@@ -100,7 +100,7 @@
 </template>
 
 <script>
-import {doc, getDoc, updateDoc} from "firebase/firestore";
+import {doc, getDoc, updateDoc, onSnapshot} from "firebase/firestore";
 import db from "../../firebase/firebase";
 import {getAuth} from "firebase/auth";
 import questionArr from "../assets/arr";
@@ -121,10 +121,26 @@ export default {
       questionNumber: 1,
       isAnswerModal: false,
       startCount: '',
+      userNum: '',
     }
   },
   async mounted() {
+    const docSnap = await getDoc(doc(db, "rooms", this.$route.params.roomId));
+    let uid = getAuth().currentUser.uid;
+    this.userNum = docSnap.data().participants[0] === uid ? 'user1' : 'user2';
+    const oppUser = this.userNum !== 'user1' ? 'user1' : 'user2';
     this.count();
+    onSnapshot(doc(db, "rooms", this.$route.params.roomId), (doc) => {
+      console.log("Current data: ", doc.data());
+      if (doc.data().score[oppUser]!==this.oppScore){
+        this.oppScore = doc.data().score[oppUser];
+      }
+      if (doc.data().isAnswerModal!==this.isAnswerModal){
+        this.isAnswerModal = Boolean(doc.data().isAnswerModal);
+        document.getElementById('progress').style.animationPlayState =
+            this.isAnswerModal === true ?  "paused" : "running";
+      }
+    });
   },
   methods: {
     count() {
@@ -141,29 +157,38 @@ export default {
       }.bind(this), 1000, countList, i, this.startCount);
     },
     async scored(score) {
-      // ここでプログレスバーの表示を0にした
-      document.getElementById('progress').classList.remove("move");
-      const docSnap = await getDoc(doc(db, "rooms", this.$route.params.roomId));
-      let uid = getAuth().currentUser.uid;
-      if (this.myScore + score === 2){
+      if (this.myScore + score === 5){
         console.log('You Win!');
         this.$router.push('/result');
       }
       this.myScore += this.myScore + score >= 0 ? score : 0;
-      if (docSnap.data().participants[0] === uid) {
+      let scoreUser = "score" + "." + this.userNum;
+      if (score === 1){
+        // ここでプログレスバーの表示を0にした
+        document.getElementById('progress').classList.remove("move");
         await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
-          "score.user1": this.myScore
+          [scoreUser]: this.myScore,
+          "isAnswerModal": false,
+          "questionNumber.user1": this.questionNumber + 1,
+          "questionNumber.user2": this.questionNumber + 1,
         });
+        setTimeout(this.skipQuestion, 500);
+        setTimeout(function () {
+          document.getElementById('progress').classList.add("move");
+        }, 500);
       }
-      setTimeout(this.skipQuestion, 500);
-      setTimeout(function () {
-        document.getElementById('progress').classList.add("move");
-      }, 500);
+      if(score === -1){
+        await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
+          [scoreUser]: this.myScore,
+          "isAnswerModal": false,
+        });
+        document.getElementById('answer-button').style.pointerEvents = "none";
+      }
     },
     answer() {
-      this.isAnswerModal = true;
-      document.getElementById('progress').style.animationPlayState = "paused";
-      document.getElementById('answer-button').style.pointerEvents = "none";
+      updateDoc(doc(db, "rooms", this.$route.params.roomId), {
+        "isAnswerModal": true
+      });
     },
     // 先
     async setQuestion() {
@@ -181,9 +206,9 @@ export default {
     async nextQuestion() {
       return new Promise((resolve, reject) => {
         document.getElementById('progress').addEventListener('animationend', () => {
-          if (this.questionNumber === 5) {
-            console.log('end');
-          }
+          updateDoc(doc(db, "rooms", this.$route.params.roomId), {
+            "questionNumber.user1": this.questionNumber + 1
+          });
           document.getElementById('progress').classList.remove("move");
           resolve();
         });
