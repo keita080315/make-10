@@ -100,7 +100,7 @@
 </template>
 
 <script>
-import {doc, getDoc, updateDoc, onSnapshot} from "firebase/firestore";
+import {doc, getDoc, updateDoc, onSnapshot, setDoc} from "firebase/firestore";
 import db from "../../firebase/firebase";
 import {getAuth} from "firebase/auth";
 import questionArr from "../assets/arr";
@@ -125,6 +125,10 @@ export default {
     }
   },
   async mounted() {
+    //Todo: 後でfunctionsで行なう箇所
+    await setDoc(doc(db, "questions", this.$route.params.roomId), {
+      created: '',
+    });
     const docSnap = await getDoc(doc(db, "rooms", this.$route.params.roomId));
     let uid = getAuth().currentUser.uid;
     this.userNum = docSnap.data().participants[0] === uid ? 'user1' : 'user2';
@@ -162,7 +166,7 @@ export default {
         this.$router.push('/result');
       }
       this.myScore += this.myScore + score >= 0 ? score : 0;
-      let scoreUser = "score" + "." + this.userNum;
+      const scoreUser = "score" + "." + this.userNum;
       if (score === 1){
         // ここでプログレスバーの表示を0にした
         document.getElementById('progress').classList.remove("move");
@@ -206,8 +210,9 @@ export default {
     async nextQuestion() {
       return new Promise((resolve, reject) => {
         document.getElementById('progress').addEventListener('animationend', () => {
-          updateDoc(doc(db, "rooms", this.$route.params.roomId), {
-            "questionNumber.user1": this.questionNumber + 1
+          const questionUser = "questionNumber" + "." + this.userNum;
+          updateDoc(doc(db, "questions", this.$route.params.roomId), {
+            [questionUser]: this.questionNumber + 1,
           });
           document.getElementById('progress').classList.remove("move");
           resolve();

@@ -75,6 +75,11 @@ export default {
               roomId: roomId,
               participants: [],
               created: date.toLocaleString(),
+              score:{
+                user1: 0,
+                user2: 0,
+              },
+              isAnswerModal: false,
             });
             let roomIdColumn = 'roomId';
             let status = 'status';
