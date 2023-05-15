@@ -100,7 +100,7 @@
 </template>
 
 <script>
-import {doc, getDoc, updateDoc, onSnapshot, setDoc} from "firebase/firestore";
+import {doc, getDoc, updateDoc, onSnapshot} from "firebase/firestore";
 import db from "../../firebase/firebase";
 import {getAuth} from "firebase/auth";
 import questionArr from "../assets/arr";
@@ -122,27 +122,38 @@ export default {
       isAnswerModal: false,
       startCount: '',
       userNum: '',
+      randomNumber: 0,
     }
   },
   async mounted() {
-    //Todo: 後でfunctionsで行なう箇所
-    await setDoc(doc(db, "questions", this.$route.params.roomId), {
-      created: '',
-    });
     const docSnap = await getDoc(doc(db, "rooms", this.$route.params.roomId));
     let uid = getAuth().currentUser.uid;
     this.userNum = docSnap.data().participants[0] === uid ? 'user1' : 'user2';
     const oppUser = this.userNum !== 'user1' ? 'user1' : 'user2';
+    const questionUser = "questionNumber" + "." + this.userNum;
+    await updateDoc(doc(db, "questions", this.$route.params.roomId), {
+      [questionUser]: 1,
+    });
     this.count();
     onSnapshot(doc(db, "rooms", this.$route.params.roomId), (doc) => {
       console.log("Current data: ", doc.data());
       if (doc.data().score[oppUser]!==this.oppScore){
+        if (this.oppScore < doc.data().score[oppUser]){
+          document.getElementById('progress').classList.remove("move");
+        }
         this.oppScore = doc.data().score[oppUser];
       }
       if (doc.data().isAnswerModal!==this.isAnswerModal){
         this.isAnswerModal = Boolean(doc.data().isAnswerModal);
         document.getElementById('progress').style.animationPlayState =
             this.isAnswerModal === true ?  "paused" : "running";
+      }
+      if (doc.data().randomNumber!==this.randomNumber){
+        this.questionNumber = doc.data().questionNumber;
+        this.randomNumber = doc.data().randomNumber;
+        if (this.questionNumber !== 1){
+          this.setQuestion();
+        }
       }
     });
   },
@@ -170,16 +181,18 @@ export default {
       if (score === 1){
         // ここでプログレスバーの表示を0にした
         document.getElementById('progress').classList.remove("move");
-        await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
-          [scoreUser]: this.myScore,
-          "isAnswerModal": false,
+        await updateDoc(doc(db, "questions", this.$route.params.roomId), {
           "questionNumber.user1": this.questionNumber + 1,
           "questionNumber.user2": this.questionNumber + 1,
         });
-        setTimeout(this.skipQuestion, 500);
-        setTimeout(function () {
-          document.getElementById('progress').classList.add("move");
-        }, 500);
+        await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
+          [scoreUser]: this.myScore,
+          "isAnswerModal": false,
+        });
+        // setTimeout(this.skipQuestion, 500);
+        // setTimeout(function () {
+        //   document.getElementById('progress').classList.add("move");
+        // }, 500);
       }
       if(score === -1){
         await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
@@ -197,15 +210,16 @@ export default {
     // 先
     async setQuestion() {
       this.cards = [];
-      this.cards = questionArr[Math.floor(Math.random() * 5223) - 1];
+      this.cards = questionArr[this.randomNumber];
+      console.log(this.cards);
       this.fakeCards = this.cards.concat();
       document.getElementById('answer-button').style.pointerEvents = "auto";
       // プログレスバーの進捗再設定
       let progressElem = document.getElementById('progress');
       progressElem.classList.add("move");
       await this.nextQuestion();
-      this.questionNumber++;
-      setTimeout(this.setQuestion, 0);
+      // this.questionNumber++;
+      // setTimeout(this.setQuestion, 0);
     },
     async nextQuestion() {
       return new Promise((resolve, reject) => {

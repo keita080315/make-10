@@ -80,6 +80,11 @@ export default {
                 user2: 0,
               },
               isAnswerModal: false,
+              questionNumber: 1,
+              randomNumber: 0,
+            });
+            await setDoc(doc(db, "questions", roomId), {
+              created: date.toLocaleString(),
             });
             let roomIdColumn = 'roomId';
             let status = 'status';
