@@ -52,7 +52,7 @@
       </v-row>
 
       <v-row justify="center" class="mx-auto mt-14">
-        <div v-for="card in cards" :key="card" class="card-wrap">
+        <div v-for="card in cards" class="card-wrap">
           <v-col cols="3" class="card-content">
             {{ card }}
           </v-col>
