@@ -67,6 +67,7 @@
       <answer-modal
           :fakeCards="fakeCards"
           :isAnswerModal="isAnswerModal"
+          :isVisibleCard="isVisibleCard"
           v-show="isAnswerModal"
           @is-answer-modal='isAnswerModal = $event'
           @scored="scored"
@@ -123,12 +124,12 @@ export default {
       startCount: '',
       userNum: '',
       randomNumber: 0,
+      isVisibleCard: true,
     }
   },
   async mounted() {
     const docSnap = await getDoc(doc(db, "rooms", this.$route.params.roomId));
-    let uid = getAuth().currentUser.uid;
-    this.userNum = docSnap.data().participants[0] === uid ? 'user1' : 'user2';
+    this.userNum = docSnap.data().participants[0] === getAuth().currentUser.uid ? 'user1' : 'user2';
     const oppUser = this.userNum !== 'user1' ? 'user1' : 'user2';
     const questionUser = "questionNumber" + "." + this.userNum;
     await updateDoc(doc(db, "questions", this.$route.params.roomId), {
@@ -143,8 +144,9 @@ export default {
         }
         this.oppScore = doc.data().score[oppUser];
       }
-      if (doc.data().isAnswerModal!==this.isAnswerModal){
-        this.isAnswerModal = Boolean(doc.data().isAnswerModal);
+      if (doc.data().isAnswerModal['isDisplay']!==this.isAnswerModal){
+        this.isAnswerModal = Boolean(doc.data().isAnswerModal['isDisplay']);
+        this.isVisibleCard = getAuth().currentUser.uid === doc.data().isAnswerModal['user'];
         document.getElementById('progress').style.animationPlayState =
             this.isAnswerModal === true ?  "paused" : "running";
       }
@@ -187,7 +189,7 @@ export default {
         });
         await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
           [scoreUser]: this.myScore,
-          "isAnswerModal": false,
+          "isAnswerModal.isDisplay": false,
         });
         // setTimeout(this.skipQuestion, 500);
         // setTimeout(function () {
@@ -197,21 +199,21 @@ export default {
       if(score === -1){
         await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
           [scoreUser]: this.myScore,
-          "isAnswerModal": false,
+          "isAnswerModal.isDisplay": false,
         });
         document.getElementById('answer-button').style.pointerEvents = "none";
       }
     },
     answer() {
       updateDoc(doc(db, "rooms", this.$route.params.roomId), {
-        "isAnswerModal": true
+        "isAnswerModal.isDisplay": true,
+        "isAnswerModal.user": getAuth().currentUser.uid,
       });
     },
     // 先
     async setQuestion() {
       this.cards = [];
       this.cards = questionArr[this.randomNumber];
-      console.log(this.cards);
       this.fakeCards = this.cards.concat();
       document.getElementById('answer-button').style.pointerEvents = "auto";
       // プログレスバーの進捗再設定

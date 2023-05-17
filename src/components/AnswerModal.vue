@@ -1,7 +1,7 @@
 <template>
   <div>
     <div class="answer-modal-component">
-      <p class="font-weight-bold pt-3">解答中...</p>
+      <p class="font-weight-bold pt-3"><span class="font-weight-bold" v-if="!isVisibleCard">対戦相手が</span>解答中...</p>
       <div class="text-center pt-4" v-if="isFinishedAnswer">
         <p class="font-weight-bold text-h4">{{ this.answer }}</p>
       </div>
@@ -28,7 +28,7 @@
         <p class="">×</p>
       </div>
     </div>
-    <v-row justify="center" class="mx-auto mt-14 card-row" id="card-row">
+    <v-row justify="center" class="mx-auto mt-14 card-row" id="card-row" v-if="isVisibleCard">
       <div v-for="(card,index) in fakeCards" :key="card" class="card-wrap" id="card-wrap"
            @click="pushCard(card,index,1)">
         <v-col cols="3" class="card-content">
@@ -36,7 +36,7 @@
         </v-col>
       </div>
     </v-row>
-    <v-row justify="center" class="mx-auto mt-14 math-row" id="math-row">
+    <v-row justify="center" class="mx-auto mt-14 math-row" id="math-row" v-if="isVisibleCard">
       <div v-for="(mathCard,index) in mathCards" :key="mathCard" class="card-wrap" id="math-card-wrap"
            @click="pushCard(mathCard,index,0)">
         <v-col cols="3" class="card-content">
@@ -51,6 +51,8 @@
 
 <script>
 
+import {getAuth} from "firebase/auth";
+
 export default {
   name: "AnswerModal",
   props: {
@@ -59,6 +61,9 @@ export default {
       required: true
     },
     isAnswerModal: {
+      type: Boolean,
+    },
+    isVisibleCard: {
       type: Boolean,
     }
   },
@@ -132,13 +137,17 @@ export default {
           this.$emit("scored",-1)
         },1000);
       }
-      document.getElementById("math-row").style.display = "none";
+      if (this.isVisibleCard){
+        document.getElementById("math-row").style.display = "none";
+      }
       setTimeout(this.returnFalse,1000);
     },
   },
   watch:{
     fakeCards() {
-      document.getElementById("card-row").style.display = "flex";
+      if (this.isVisibleCard){
+        document.getElementById("card-row").style.display = "flex";
+      }
     },
     isAnswerModal() {
       if (this.isAnswerModal === true){
@@ -148,7 +157,7 @@ export default {
           }
           else if (this.cardCount === 0) {
             clearInterval(interval);
-            if (!(this.fakeCards.length === 0)){
+            if (!(this.fakeCards.length === 0)&&this.isVisibleCard){
               this.resultCal = 0;
               this.judgeAnswer();
             }

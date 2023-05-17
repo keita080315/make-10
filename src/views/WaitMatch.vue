@@ -79,7 +79,9 @@ export default {
                 user1: 0,
                 user2: 0,
               },
-              isAnswerModal: false,
+              isAnswerModal:{
+                isDisplay : false,
+              },
               questionNumber: 1,
               randomNumber: 0,
             });
