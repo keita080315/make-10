@@ -75,6 +75,18 @@ export default {
               roomId: roomId,
               participants: [],
               created: date.toLocaleString(),
+              score:{
+                user1: 0,
+                user2: 0,
+              },
+              isAnswerModal:{
+                isDisplay : false,
+              },
+              questionNumber: 1,
+              randomNumber: 0,
+            });
+            await setDoc(doc(db, "questions", roomId), {
+              created: date.toLocaleString(),
             });
             let roomIdColumn = 'roomId';
             let status = 'status';

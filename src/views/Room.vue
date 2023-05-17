@@ -52,7 +52,7 @@
       </v-row>
 
       <v-row justify="center" class="mx-auto mt-14">
-        <div v-for="card in cards" :key="card" class="card-wrap">
+        <div v-for="card in cards" class="card-wrap">
           <v-col cols="3" class="card-content">
             {{ card }}
           </v-col>
@@ -67,6 +67,7 @@
       <answer-modal
           :fakeCards="fakeCards"
           :isAnswerModal="isAnswerModal"
+          :isVisibleCard="isVisibleCard"
           v-show="isAnswerModal"
           @is-answer-modal='isAnswerModal = $event'
           @scored="scored"
@@ -122,23 +123,39 @@ export default {
       isAnswerModal: false,
       startCount: '',
       userNum: '',
+      randomNumber: 0,
+      isVisibleCard: true,
     }
   },
   async mounted() {
     const docSnap = await getDoc(doc(db, "rooms", this.$route.params.roomId));
-    let uid = getAuth().currentUser.uid;
-    this.userNum = docSnap.data().participants[0] === uid ? 'user1' : 'user2';
+    this.userNum = docSnap.data().participants[0] === getAuth().currentUser.uid ? 'user1' : 'user2';
     const oppUser = this.userNum !== 'user1' ? 'user1' : 'user2';
+    const questionUser = "questionNumber" + "." + this.userNum;
+    await updateDoc(doc(db, "questions", this.$route.params.roomId), {
+      [questionUser]: 1,
+    });
     this.count();
     onSnapshot(doc(db, "rooms", this.$route.params.roomId), (doc) => {
       console.log("Current data: ", doc.data());
       if (doc.data().score[oppUser]!==this.oppScore){
+        if (this.oppScore < doc.data().score[oppUser]){
+          document.getElementById('progress').classList.remove("move");
+        }
         this.oppScore = doc.data().score[oppUser];
       }
-      if (doc.data().isAnswerModal!==this.isAnswerModal){
-        this.isAnswerModal = Boolean(doc.data().isAnswerModal);
+      if (doc.data().isAnswerModal['isDisplay']!==this.isAnswerModal){
+        this.isAnswerModal = Boolean(doc.data().isAnswerModal['isDisplay']);
+        this.isVisibleCard = getAuth().currentUser.uid === doc.data().isAnswerModal['user'];
         document.getElementById('progress').style.animationPlayState =
             this.isAnswerModal === true ?  "paused" : "running";
+      }
+      if (doc.data().randomNumber!==this.randomNumber){
+        this.questionNumber = doc.data().questionNumber;
+        this.randomNumber = doc.data().randomNumber;
+        if (this.questionNumber !== 1){
+          this.setQuestion();
+        }
       }
     });
   },
@@ -162,52 +179,56 @@ export default {
         this.$router.push('/result');
       }
       this.myScore += this.myScore + score >= 0 ? score : 0;
-      let scoreUser = "score" + "." + this.userNum;
+      const scoreUser = "score" + "." + this.userNum;
       if (score === 1){
         // ここでプログレスバーの表示を0にした
         document.getElementById('progress').classList.remove("move");
-        await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
-          [scoreUser]: this.myScore,
-          "isAnswerModal": false,
+        await updateDoc(doc(db, "questions", this.$route.params.roomId), {
           "questionNumber.user1": this.questionNumber + 1,
           "questionNumber.user2": this.questionNumber + 1,
         });
-        setTimeout(this.skipQuestion, 500);
-        setTimeout(function () {
-          document.getElementById('progress').classList.add("move");
-        }, 500);
+        await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
+          [scoreUser]: this.myScore,
+          "isAnswerModal.isDisplay": false,
+        });
+        // setTimeout(this.skipQuestion, 500);
+        // setTimeout(function () {
+        //   document.getElementById('progress').classList.add("move");
+        // }, 500);
       }
       if(score === -1){
         await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
           [scoreUser]: this.myScore,
-          "isAnswerModal": false,
+          "isAnswerModal.isDisplay": false,
         });
         document.getElementById('answer-button').style.pointerEvents = "none";
       }
     },
     answer() {
       updateDoc(doc(db, "rooms", this.$route.params.roomId), {
-        "isAnswerModal": true
+        "isAnswerModal.isDisplay": true,
+        "isAnswerModal.user": getAuth().currentUser.uid,
       });
     },
     // 先
     async setQuestion() {
       this.cards = [];
-      this.cards = questionArr[Math.floor(Math.random() * 5223) - 1];
+      this.cards = questionArr[this.randomNumber];
       this.fakeCards = this.cards.concat();
       document.getElementById('answer-button').style.pointerEvents = "auto";
       // プログレスバーの進捗再設定
       let progressElem = document.getElementById('progress');
       progressElem.classList.add("move");
       await this.nextQuestion();
-      this.questionNumber++;
-      setTimeout(this.setQuestion, 0);
+      // this.questionNumber++;
+      // setTimeout(this.setQuestion, 0);
     },
     async nextQuestion() {
       return new Promise((resolve, reject) => {
         document.getElementById('progress').addEventListener('animationend', () => {
-          updateDoc(doc(db, "rooms", this.$route.params.roomId), {
-            "questionNumber.user1": this.questionNumber + 1
+          const questionUser = "questionNumber" + "." + this.userNum;
+          updateDoc(doc(db, "questions", this.$route.params.roomId), {
+            [questionUser]: this.questionNumber + 1,
           });
           document.getElementById('progress').classList.remove("move");
           resolve();
