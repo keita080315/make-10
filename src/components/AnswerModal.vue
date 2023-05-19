@@ -51,8 +51,6 @@
 
 <script>
 
-import {getAuth} from "firebase/auth";
-
 export default {
   name: "AnswerModal",
   props: {

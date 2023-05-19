@@ -68,10 +68,16 @@
           :fakeCards="fakeCards"
           :isAnswerModal="isAnswerModal"
           :isVisibleCard="isVisibleCard"
-          v-show="isAnswerModal"
+          v-show="isAnswerModal&&!isFinishedGame"
           @is-answer-modal='isAnswerModal = $event'
           @scored="scored"
       ></answer-modal>
+      <result-modal
+          :myScore="myScore"
+          :oppScore="oppScore"
+          :isFinishedGame="isFinishedGame"
+          v-show="isFinishedGame"
+      ></result-modal>
 
       <div class="answer-content">
         <div class="number-content">
@@ -106,10 +112,12 @@ import db from "../../firebase/firebase";
 import {getAuth} from "firebase/auth";
 import questionArr from "../assets/arr";
 import AnswerModal from "../components/AnswerModal.vue";
+import ResultModal from "../components/ResultModal.vue";
 
 export default {
   name: "Room",
   components: {
+    ResultModal,
     AnswerModal
   },
   data() {
@@ -125,6 +133,7 @@ export default {
       userNum: '',
       randomNumber: 0,
       isVisibleCard: true,
+      isFinishedGame: false,
     }
   },
   async mounted() {
@@ -143,6 +152,9 @@ export default {
           document.getElementById('progress').classList.remove("move");
         }
         this.oppScore = doc.data().score[oppUser];
+        if (this.oppScore === 5){
+          this.isFinishedGame = true;
+        }
       }
       if (doc.data().isAnswerModal['isDisplay']!==this.isAnswerModal){
         this.isAnswerModal = Boolean(doc.data().isAnswerModal['isDisplay']);
@@ -175,8 +187,8 @@ export default {
     },
     async scored(score) {
       if (this.myScore + score === 5){
-        console.log('You Win!');
-        this.$router.push('/result');
+        document.getElementById('progress').classList.remove("move");
+        this.isFinishedGame = true;
       }
       this.myScore += this.myScore + score >= 0 ? score : 0;
       const scoreUser = "score" + "." + this.userNum;
@@ -191,10 +203,6 @@ export default {
           [scoreUser]: this.myScore,
           "isAnswerModal.isDisplay": false,
         });
-        // setTimeout(this.skipQuestion, 500);
-        // setTimeout(function () {
-        //   document.getElementById('progress').classList.add("move");
-        // }, 500);
       }
       if(score === -1){
         await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
@@ -235,13 +243,6 @@ export default {
         });
       });
     },
-    skipQuestion() {
-      this.cards = [];
-      this.cards = questionArr[Math.floor(Math.random() * 5223) - 1];
-      this.fakeCards = this.cards.concat();
-      document.getElementById('answer-button').style.pointerEvents = "auto";
-      this.questionNumber++;
-    }
   }
 }
 </script>
