@@ -2,7 +2,7 @@ const functions = require('firebase-functions');
 const admin = require('firebase-admin');
 admin.initializeApp();
 
-exports.createQuestionNumber = functions.firestore
+exports.createQuestionNumber = functions.region("asia-northeast1").firestore
     .document('questions/{roomId}')
     .onUpdate((change, context) => {
         if (change.after.data().questionNumber['user1'] === change.after.data().questionNumber['user2']) {

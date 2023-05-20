@@ -59,42 +59,31 @@
         </div>
       </v-row>
 
-      <div class="circle-out mt-12" id="answer-button">
-        <div class="circle-inner align-center" @click="answer">
+      <div>
+        <div class="circle-out mt-12" id="answer-button">
+          <div class="circle-inner align-center" @click="answer">
+          </div>
         </div>
+        <p class="font-weight-bold text-center" style="font-size: 16px">Push!!</p>
       </div>
 
       <answer-modal
           :fakeCards="fakeCards"
           :isAnswerModal="isAnswerModal"
           :isVisibleCard="isVisibleCard"
-          v-show="isAnswerModal"
+          v-show="isAnswerModal&&!isFinishedGame"
           @is-answer-modal='isAnswerModal = $event'
           @scored="scored"
       ></answer-modal>
+      <result-modal
+          :myScore="myScore"
+          :oppScore="oppScore"
+          :isFinishedGame="isFinishedGame"
+          v-show="isFinishedGame"
+      ></result-modal>
 
-      <div class="answer-content">
-        <div class="number-content">
-          <p>1</p>
-        </div>
-        <div class="method-content">
-          <p>×</p>
-        </div>
-        <div class="number-content">
-          <p>3</p>
-        </div>
-        <div class="method-content">
-          <p></p>
-        </div>
-        <div class="number-content">
-          <p></p>
-        </div>
-        <div class="method-content">
-          <p></p>
-        </div>
-        <div class="number-content">
-          <p></p>
-        </div>
+      <div class="notice-content">
+        <p>先に5問正解した人が勝ち！ <br>数字は1つずつ計算されるよ</p>
       </div>
     </div>
   </v-app>
@@ -106,10 +95,12 @@ import db from "../../firebase/firebase";
 import {getAuth} from "firebase/auth";
 import questionArr from "../assets/arr";
 import AnswerModal from "../components/AnswerModal.vue";
+import ResultModal from "../components/ResultModal.vue";
 
 export default {
   name: "Room",
   components: {
+    ResultModal,
     AnswerModal
   },
   data() {
@@ -125,6 +116,7 @@ export default {
       userNum: '',
       randomNumber: 0,
       isVisibleCard: true,
+      isFinishedGame: false,
     }
   },
   async mounted() {
@@ -157,6 +149,10 @@ export default {
           this.setQuestion();
         }
       }
+      if (this.oppScore === 5){
+        document.getElementById('progress').style.animationPlayState = "paused";
+        this.isFinishedGame = true;
+      }
     });
   },
   methods: {
@@ -174,10 +170,6 @@ export default {
       }.bind(this), 1000, countList, i, this.startCount);
     },
     async scored(score) {
-      if (this.myScore + score === 5){
-        console.log('You Win!');
-        this.$router.push('/result');
-      }
       this.myScore += this.myScore + score >= 0 ? score : 0;
       const scoreUser = "score" + "." + this.userNum;
       if (score === 1){
@@ -191,10 +183,11 @@ export default {
           [scoreUser]: this.myScore,
           "isAnswerModal.isDisplay": false,
         });
-        // setTimeout(this.skipQuestion, 500);
-        // setTimeout(function () {
-        //   document.getElementById('progress').classList.add("move");
-        // }, 500);
+      }
+      if (this.myScore === 5){
+        document.getElementById('progress').style.animationPlayState = "paused";
+        this.isFinishedGame = true;
+        return;
       }
       if(score === -1){
         await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
@@ -235,13 +228,6 @@ export default {
         });
       });
     },
-    skipQuestion() {
-      this.cards = [];
-      this.cards = questionArr[Math.floor(Math.random() * 5223) - 1];
-      this.fakeCards = this.cards.concat();
-      document.getElementById('answer-button').style.pointerEvents = "auto";
-      this.questionNumber++;
-    }
   }
 }
 </script>
@@ -337,43 +323,23 @@ export default {
   max-width: fit-content;
 }
 
-.answer-content {
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: row;
+.notice-content {
+  text-align: center;
   justify-content: center;
-  margin-top: 45px;
+  margin: 35px auto 0;
+  background-color: white;
+  border-radius: 8px;
+  width: 276px;
+  height: 66px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  padding: 14px 0;
 }
 
-.answer-content p {
+.notice-content p {
   font-weight: bold;
-}
-
-.number-content {
-  width: 50px;
-  height: 67px;
-  background-color: white;
-  border: 5px #EBEBEB solid;
-  text-align: center;
-  color: black;
-  font-size: 34px;
-  display: inline-block;
-  margin: 0 3px;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-}
-
-.method-content {
-  width: 34px;
-  height: 34px;
-  background-color: white;
-  border-radius: 50%;
-  text-align: center;
-  color: black;
-  font-size: 30px;
-  display: flex;
-  margin: 16px 3px;
-  align-items: center;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  font-size: 16px;
+  line-height: 19px;
+  letter-spacing: 0.03em;
 }
 
 .move {

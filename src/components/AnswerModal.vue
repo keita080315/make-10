@@ -29,7 +29,7 @@
       </div>
     </div>
     <v-row justify="center" class="mx-auto mt-14 card-row" id="card-row" v-if="isVisibleCard">
-      <div v-for="(card,index) in fakeCards" :key="card" class="card-wrap" id="card-wrap"
+      <div v-for="(card,index) in fakeCards" class="card-wrap" id="card-wrap"
            @click="pushCard(card,index,1)">
         <v-col cols="3" class="card-content">
           {{ card }}
@@ -37,7 +37,7 @@
       </div>
     </v-row>
     <v-row justify="center" class="mx-auto mt-14 math-row" id="math-row" v-if="isVisibleCard">
-      <div v-for="(mathCard,index) in mathCards" :key="mathCard" class="card-wrap" id="math-card-wrap"
+      <div v-for="(mathCard,index) in mathCards" class="card-wrap" id="math-card-wrap"
            @click="pushCard(mathCard,index,0)">
         <v-col cols="3" class="card-content">
           {{ mathCard }}
@@ -50,8 +50,6 @@
 </template>
 
 <script>
-
-import {getAuth} from "firebase/auth";
 
 export default {
   name: "AnswerModal",
