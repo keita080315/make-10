@@ -59,9 +59,12 @@
         </div>
       </v-row>
 
-      <div class="circle-out mt-12" id="answer-button">
-        <div class="circle-inner align-center" @click="answer">
+      <div>
+        <div class="circle-out mt-12" id="answer-button">
+          <div class="circle-inner align-center" @click="answer">
+          </div>
         </div>
+        <p class="font-weight-bold text-center" style="font-size: 16px">Push!!</p>
       </div>
 
       <answer-modal
@@ -79,28 +82,8 @@
           v-show="isFinishedGame"
       ></result-modal>
 
-      <div class="answer-content">
-        <div class="number-content">
-          <p>1</p>
-        </div>
-        <div class="method-content">
-          <p>×</p>
-        </div>
-        <div class="number-content">
-          <p>3</p>
-        </div>
-        <div class="method-content">
-          <p></p>
-        </div>
-        <div class="number-content">
-          <p></p>
-        </div>
-        <div class="method-content">
-          <p></p>
-        </div>
-        <div class="number-content">
-          <p></p>
-        </div>
+      <div class="notice-content">
+        <p>先に5問正解した人が勝ち！ <br>数字は1つずつ計算されるよ</p>
       </div>
     </div>
   </v-app>
@@ -340,43 +323,23 @@ export default {
   max-width: fit-content;
 }
 
-.answer-content {
-  display: flex;
-  flex-wrap: wrap;
-  flex-direction: row;
+.notice-content {
+  text-align: center;
   justify-content: center;
-  margin-top: 45px;
+  margin: 35px auto 0;
+  background-color: white;
+  border-radius: 8px;
+  width: 276px;
+  height: 66px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  padding: 14px 0;
 }
 
-.answer-content p {
+.notice-content p {
   font-weight: bold;
-}
-
-.number-content {
-  width: 50px;
-  height: 67px;
-  background-color: white;
-  border: 5px #EBEBEB solid;
-  text-align: center;
-  color: black;
-  font-size: 34px;
-  display: inline-block;
-  margin: 0 3px;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
-}
-
-.method-content {
-  width: 34px;
-  height: 34px;
-  background-color: white;
-  border-radius: 50%;
-  text-align: center;
-  color: black;
-  font-size: 30px;
-  display: flex;
-  margin: 16px 3px;
-  align-items: center;
-  box-shadow: 0px 4px 4px rgba(0, 0, 0, 0.25);
+  font-size: 16px;
+  line-height: 19px;
+  letter-spacing: 0.03em;
 }
 
 .move {
