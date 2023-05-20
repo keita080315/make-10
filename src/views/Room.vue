@@ -152,9 +152,6 @@ export default {
           document.getElementById('progress').classList.remove("move");
         }
         this.oppScore = doc.data().score[oppUser];
-        if (this.oppScore === 5){
-          this.isFinishedGame = true;
-        }
       }
       if (doc.data().isAnswerModal['isDisplay']!==this.isAnswerModal){
         this.isAnswerModal = Boolean(doc.data().isAnswerModal['isDisplay']);
@@ -168,6 +165,10 @@ export default {
         if (this.questionNumber !== 1){
           this.setQuestion();
         }
+      }
+      if (this.oppScore === 5){
+        document.getElementById('progress').style.animationPlayState = "paused";
+        this.isFinishedGame = true;
       }
     });
   },
@@ -186,10 +187,6 @@ export default {
       }.bind(this), 1000, countList, i, this.startCount);
     },
     async scored(score) {
-      if (this.myScore + score === 5){
-        document.getElementById('progress').classList.remove("move");
-        this.isFinishedGame = true;
-      }
       this.myScore += this.myScore + score >= 0 ? score : 0;
       const scoreUser = "score" + "." + this.userNum;
       if (score === 1){
@@ -203,6 +200,11 @@ export default {
           [scoreUser]: this.myScore,
           "isAnswerModal.isDisplay": false,
         });
+      }
+      if (this.myScore === 5){
+        document.getElementById('progress').style.animationPlayState = "paused";
+        this.isFinishedGame = true;
+        return;
       }
       if(score === -1){
         await updateDoc(doc(db, "rooms", this.$route.params.roomId), {
